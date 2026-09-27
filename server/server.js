@@ -3,12 +3,14 @@ const cors = require("cors");
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Test route
-// Business Types
+
+// =========================
+// BUSINESS TYPES
+// =========================
+
 const businessTypes = [
     {
         id: 1,
@@ -32,10 +34,15 @@ const businessTypes = [
     }
 ];
 
-// Get all business types
 app.get("/api/business-types", (req, res) => {
     res.json(businessTypes);
 });
+
+
+// =========================
+// PROVIDERS
+// =========================
+
 const providers = [
     {
         id: 1,
@@ -69,7 +76,64 @@ const providers = [
     }
 ];
 
-// Services
+app.get("/api/providers", (req, res) => {
+    res.json(providers);
+});
+
+app.get("/api/providers/type/:businessTypeId", (req, res) => {
+    const businessTypeId = Number(req.params.businessTypeId);
+
+    const filteredProviders = providers.filter(
+        provider => provider.businessTypeId === businessTypeId
+    );
+
+    res.json(filteredProviders);
+});
+
+app.post("/api/providers", (req, res) => {
+    const { businessTypeId, name, location } = req.body;
+
+    if (!businessTypeId || !name || !location) {
+        return res.status(400).json({
+            message: "businessTypeId, name and location are required"
+        });
+    }
+
+    const businessType = businessTypes.find(
+        type => type.id === Number(businessTypeId)
+    );
+
+    if (!businessType) {
+        return res.status(400).json({
+            message: "Invalid business type"
+        });
+    }
+
+    const newId =
+        providers.length > 0
+            ? Math.max(...providers.map(provider => provider.id)) + 1
+            : 1;
+
+    const newProvider = {
+        id: newId,
+        businessTypeId: Number(businessTypeId),
+        name: name.trim(),
+        location: location.trim()
+    };
+
+    providers.push(newProvider);
+
+    res.status(201).json({
+        message: "Provider created successfully",
+        provider: newProvider
+    });
+});
+
+
+// =========================
+// SERVICES
+// =========================
+
 const services = [
     {
         id: 1,
@@ -88,51 +152,32 @@ const services = [
         providerId: 1,
         name: "Cardiology",
         estimatedMinutes: 30
-    },
-    {
-        id: 4,
-        providerId: 3,
-        name: "Cash Deposit",
-        estimatedMinutes: 10
-    },
-    {
-        id: 5,
-        providerId: 3,
-        name: "Cash Withdrawal",
-        estimatedMinutes: 10
-    },
-    {
-        id: 6,
-        providerId: 4,
-        name: "Haircut",
-        estimatedMinutes: 30
-    },
-    {
-        id: 7,
-        providerId: 4,
-        name: "Hair Coloring",
-        estimatedMinutes: 60
-    },
-    {
-        id: 8,
-        providerId: 5,
-        name: "Certificate Service",
-        estimatedMinutes: 20
     }
 ];
 
-// Create a new Dynamic service
+app.get("/api/services", (req, res) => {
+    res.json(services);
+});
+
+app.get("/api/services/provider/:providerId", (req, res) => {
+    const providerId = Number(req.params.providerId);
+
+    const filteredServices = services.filter(
+        service => service.providerId === providerId
+    );
+
+    res.json(filteredServices);
+});
+
 app.post("/api/services", (req, res) => {
     const { providerId, name, estimatedMinutes } = req.body;
 
-    // Basic validation
     if (!providerId || !name || !estimatedMinutes) {
         return res.status(400).json({
             message: "providerId, name and estimatedMinutes are required"
         });
     }
 
-    // Check whether provider exists
     const provider = providers.find(
         provider => provider.id === Number(providerId)
     );
@@ -143,7 +188,6 @@ app.post("/api/services", (req, res) => {
         });
     }
 
-    // Validate estimated time
     const minutes = Number(estimatedMinutes);
 
     if (minutes <= 0) {
@@ -152,13 +196,11 @@ app.post("/api/services", (req, res) => {
         });
     }
 
-    // Generate new service ID
     const newId =
         services.length > 0
             ? Math.max(...services.map(service => service.id)) + 1
             : 1;
 
-    // Create service
     const newService = {
         id: newId,
         providerId: Number(providerId),
@@ -166,10 +208,8 @@ app.post("/api/services", (req, res) => {
         estimatedMinutes: minutes
     };
 
-    // Add service
     services.push(newService);
 
-    // Response
     res.status(201).json({
         message: "Service created successfully",
         service: newService
@@ -177,88 +217,99 @@ app.post("/api/services", (req, res) => {
 });
 
 
-// Get all providers
-app.get("/api/providers", (req, res) => {
-    res.json(providers);
+// =========================
+// STAFF
+// =========================
+
+const staff = [];
+
+app.get("/api/staff", (req, res) => {
+    res.json(staff);
 });
 
-// Get providers by business type
-app.get("/api/providers/type/:businessTypeId", (req, res) => {
-    const businessTypeId = Number(req.params.businessTypeId);
+app.get("/api/staff/provider/:providerId", (req, res) => {
+    const providerId = Number(req.params.providerId);
 
-    const filteredProviders = providers.filter(
-        provider => provider.businessTypeId === businessTypeId
+    const filteredStaff = staff.filter(
+        member => member.providerId === providerId
     );
 
-    res.json(filteredProviders);
+    res.json(filteredStaff);
 });
 
-// Create a new  dynamic  provider
-app.post("/api/providers", (req, res) => {
-    const { businessTypeId, name, location } = req.body;
+app.get("/api/staff/service/:serviceId", (req, res) => {
+    const serviceId = Number(req.params.serviceId);
 
-    // Validation
-    if (!businessTypeId || !name || !location) {
+    const filteredStaff = staff.filter(
+        member => member.serviceId === serviceId
+    );
+
+    res.json(filteredStaff);
+});
+
+app.post("/api/staff", (req, res) => {
+    const { providerId, serviceId, name, role } = req.body;
+
+    if (!providerId || !serviceId || !name) {
         return res.status(400).json({
-            message: "businessTypeId, name and location are required"
+            message: "providerId, serviceId and name are required"
         });
     }
 
-    // Check business type
-    const businessType = businessTypes.find(
-        type => type.id === Number(businessTypeId)
+    const provider = providers.find(
+        provider => provider.id === Number(providerId)
     );
 
-    if (!businessType) {
+    if (!provider) {
         return res.status(400).json({
-            message: "Invalid business type"
+            message: "Invalid provider"
         });
     }
 
-    // Generate new ID
+    const service = services.find(
+        service => service.id === Number(serviceId)
+    );
+
+    if (!service) {
+        return res.status(400).json({
+            message: "Invalid service"
+        });
+    }
+
+    if (service.providerId !== Number(providerId)) {
+        return res.status(400).json({
+            message: "Selected service does not belong to this provider"
+        });
+    }
+
     const newId =
-        providers.length > 0
-            ? Math.max(...providers.map(provider => provider.id)) + 1
+        staff.length > 0
+            ? Math.max(...staff.map(member => member.id)) + 1
             : 1;
 
-    // Create provider
-    const newProvider = {
+    const newStaff = {
         id: newId,
-        businessTypeId: Number(businessTypeId),
+        providerId: Number(providerId),
+        serviceId: Number(serviceId),
         name: name.trim(),
-        location: location.trim()
+        role: role ? role.trim() : "Staff"
     };
 
-    // Add provider
-    providers.push(newProvider);
+    staff.push(newStaff);
 
-    // Response
     res.status(201).json({
-        message: "Provider created successfully",
-        provider: newProvider
+        message: "Staff created successfully",
+        staff: newStaff
     });
 });
 
-// Get all services
-app.get("/api/services", (req, res) => {
-    res.json(services);
-});
 
-// Get services by provider
-app.get("/api/services/provider/:providerId", (req, res) => {
-    const providerId = Number(req.params.providerId);
+// =========================
+// SERVER
+// =========================
 
-    const filteredServices = services.filter(
-        service => service.providerId === providerId
-    );
-
-    res.json(filteredServices);
-});
-// Server port
 const PORT = 5000;
 
-// Start server
 app.listen(PORT, () => {
-    console.log(`UQMS Backend running on http://localhost:${PORT}`);
+    console.log(`Qnova Backend running on http://localhost:${PORT}`);
 });
-

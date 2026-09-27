@@ -3,6 +3,7 @@ import { useState } from "react";
 import ProviderRegistration from "./modules/provider/providerRegistration";
 import ProviderList from "./modules/provider/ProviderList";
 import ServiceManagement from "./modules/service/ServiceManagement";
+import StaffManagement from "./modules/staff/StaffManagement";
 
 function App() {
     const [providerRefresh, setProviderRefresh] = useState(0);
@@ -23,6 +24,7 @@ function App() {
                 refresh={providerRefresh}
             />
             <ServiceManagement/>
+            <StaffManagement />
         </div>
     );
 }
