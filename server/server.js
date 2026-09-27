@@ -121,6 +121,61 @@ const services = [
     }
 ];
 
+// Create a new Dynamic service
+app.post("/api/services", (req, res) => {
+    const { providerId, name, estimatedMinutes } = req.body;
+
+    // Basic validation
+    if (!providerId || !name || !estimatedMinutes) {
+        return res.status(400).json({
+            message: "providerId, name and estimatedMinutes are required"
+        });
+    }
+
+    // Check whether provider exists
+    const provider = providers.find(
+        provider => provider.id === Number(providerId)
+    );
+
+    if (!provider) {
+        return res.status(400).json({
+            message: "Invalid provider"
+        });
+    }
+
+    // Validate estimated time
+    const minutes = Number(estimatedMinutes);
+
+    if (minutes <= 0) {
+        return res.status(400).json({
+            message: "estimatedMinutes must be greater than 0"
+        });
+    }
+
+    // Generate new service ID
+    const newId =
+        services.length > 0
+            ? Math.max(...services.map(service => service.id)) + 1
+            : 1;
+
+    // Create service
+    const newService = {
+        id: newId,
+        providerId: Number(providerId),
+        name: name.trim(),
+        estimatedMinutes: minutes
+    };
+
+    // Add service
+    services.push(newService);
+
+    // Response
+    res.status(201).json({
+        message: "Service created successfully",
+        service: newService
+    });
+});
+
 
 // Get all providers
 app.get("/api/providers", (req, res) => {
@@ -138,7 +193,7 @@ app.get("/api/providers/type/:businessTypeId", (req, res) => {
     res.json(filteredProviders);
 });
 
-// Create a new provider
+// Create a new  dynamic  provider
 app.post("/api/providers", (req, res) => {
     const { businessTypeId, name, location } = req.body;
 

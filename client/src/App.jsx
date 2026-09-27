@@ -22,6 +22,7 @@ function App() {
             <ProviderList
                 refresh={providerRefresh}
             />
+            <ServiceManagement/>
         </div>
     );
 }
