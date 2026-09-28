@@ -1,9 +1,8 @@
 const API_URL = "http://localhost:5000";
 
-export async function getServicesByProvider(providerId) {
-    const response = await fetch(
-        `${API_URL}/api/services/provider/${providerId}`
-    );
+// Get all services
+export async function getServices() {
+    const response = await fetch(`${API_URL}/api/services`);
 
     if (!response.ok) {
         throw new Error("Failed to fetch services");
@@ -12,6 +11,20 @@ export async function getServicesByProvider(providerId) {
     return response.json();
 }
 
+// Get services by provider
+export async function getServicesByProvider(providerId) {
+    const response = await fetch(
+        `${API_URL}/api/services/provider/${providerId}`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch provider services");
+    }
+
+    return response.json();
+}
+
+// Create service
 export async function createService(serviceData) {
     const response = await fetch(`${API_URL}/api/services`, {
         method: "POST",

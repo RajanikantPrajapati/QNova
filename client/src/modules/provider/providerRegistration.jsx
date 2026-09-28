@@ -9,26 +9,24 @@ function ProviderRegistration({ onProviderCreated }) {
     const [name, setName] = useState("");
     const [location, setLocation] = useState("");
 
-    const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const loadBusinessTypes = async () => {
+        async function loadBusinessTypes() {
             try {
                 const data = await getBusinessTypes();
                 setBusinessTypes(data);
             } catch (error) {
                 setError(error.message);
             }
-        };
+        }
 
         loadBusinessTypes();
     }, []);
 
-    const handleSubmit = async (event) => {
+    async function handleSubmit(event) {
         event.preventDefault();
 
-        setMessage("");
         setError("");
 
         if (!businessTypeId || !name.trim() || !location.trim()) {
@@ -37,27 +35,22 @@ function ProviderRegistration({ onProviderCreated }) {
         }
 
         try {
-            await createProvider({
+            const data = await createProvider({
                 businessTypeId: Number(businessTypeId),
                 name: name.trim(),
                 location: location.trim(),
             });
 
-            setMessage("Provider created successfully!");
-
-            setBusinessTypeId("");
-            setName("");
-            setLocation("");
-
-            onProviderCreated();
+            // Send newly created provider to App.jsx
+            onProviderCreated(data.provider);
         } catch (error) {
             setError(error.message);
         }
-    };
+    }
 
     return (
         <section>
-            <h2>Provider Registration</h2>
+            <h2>Step 1: Business Registration</h2>
 
             <form onSubmit={handleSubmit}>
                 <div>
@@ -75,7 +68,10 @@ function ProviderRegistration({ onProviderCreated }) {
                         </option>
 
                         {businessTypes.map((type) => (
-                            <option key={type.id} value={type.id}>
+                            <option
+                                key={type.id}
+                                value={type.id}
+                            >
                                 {type.name}
                             </option>
                         ))}
@@ -85,12 +81,12 @@ function ProviderRegistration({ onProviderCreated }) {
                 <br />
 
                 <div>
-                    <label>Provider Name</label>
+                    <label>Business Name</label> 
                     <br />
 
                     <input
                         type="text"
-                        placeholder="Enter provider name"
+                        placeholder="Enter Business name"
                         value={name}
                         onChange={(event) =>
                             setName(event.target.value)
@@ -117,13 +113,12 @@ function ProviderRegistration({ onProviderCreated }) {
                 <br />
 
                 <button type="submit">
-                    Create Provider
+                    Create Business
                 </button>
             </form>
 
             <br />
 
-            {message && <p>{message}</p>}
             {error && <p>{error}</p>}
         </section>
     );

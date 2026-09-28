@@ -1,49 +1,21 @@
 import { useEffect, useState } from "react";
-import { getProviders } from "../../services/providerApi";
 import {
     getServicesByProvider,
     createService,
 } from "../../services/serviceApi";
 
-function ServiceManagement() {
-    const [providers, setProviders] = useState([]);
-    const [selectedProviderId, setSelectedProviderId] = useState("");
-
+function ServiceManagement({ provider, onServiceCreated }) {
     const [services, setServices] = useState([]);
 
     const [serviceName, setServiceName] = useState("");
     const [estimatedMinutes, setEstimatedMinutes] = useState("");
 
-    const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
-    // Load providers
     useEffect(() => {
-        async function loadProviders() {
-            try {
-                const data = await getProviders();
-                setProviders(data);
-            } catch (error) {
-                setError(error.message);
-            }
-        }
-
-        loadProviders();
-    }, []);
-
-    // Load services for selected provider
-    useEffect(() => {
-        if (!selectedProviderId) {
-            setServices([]);
-            return;
-        }
-
         async function loadServices() {
             try {
-                const data = await getServicesByProvider(
-                    selectedProviderId
-                );
-
+                const data = await getServicesByProvider(provider.id);
                 setServices(data);
             } catch (error) {
                 setError(error.message);
@@ -51,41 +23,36 @@ function ServiceManagement() {
         }
 
         loadServices();
-    }, [selectedProviderId]);
+    }, [provider.id]);
 
-    // Create service
     async function handleSubmit(event) {
         event.preventDefault();
 
-        setMessage("");
         setError("");
 
-        if (
-            !selectedProviderId ||
-            !serviceName.trim() ||
-            !estimatedMinutes
-        ) {
+        if (!serviceName.trim() || !estimatedMinutes) {
             setError("Please fill all fields.");
             return;
         }
 
         try {
-            await createService({
-                providerId: Number(selectedProviderId),
+            const data = await createService({
+                providerId: provider.id,
                 name: serviceName.trim(),
                 estimatedMinutes: Number(estimatedMinutes),
             });
 
-            setMessage("Service created successfully!");
+            const updatedServices = await getServicesByProvider(
+                provider.id
+            );
+
+            setServices(updatedServices);
 
             setServiceName("");
             setEstimatedMinutes("");
 
-            const updatedServices = await getServicesByProvider(
-                selectedProviderId
-            );
-
-            setServices(updatedServices);
+            // Move to Staff module
+            onServiceCreated(data.service);
         } catch (error) {
             setError(error.message);
         }
@@ -93,99 +60,78 @@ function ServiceManagement() {
 
     return (
         <section>
+            <h2>Step 2: Service Management</h2>
+
+            <p>
+                <strong>Business:</strong> {provider.name}
+            </p>
+
+            <p>
+                <strong>Location:</strong> {provider.location}
+            </p>
+
             <hr />
 
-            <h2>Service Management</h2>
+            <h3>Add Service</h3>
 
-            <div>
-                <label>Select Provider</label>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Service Name</label>
+                    <br />
+
+                    <input
+                        type="text"
+                        placeholder="Enter service name"
+                        value={serviceName}
+                        onChange={(event) =>
+                            setServiceName(event.target.value)
+                        }
+                    />
+                </div>
+
                 <br />
 
-                <select
-                    value={selectedProviderId}
-                    onChange={(event) =>
-                        setSelectedProviderId(event.target.value)
-                    }
-                >
-                    <option value="">Select Provider</option>
+                <div>
+                    <label>Estimated Minutes</label>
+                    <br />
 
-                    {providers.map((provider) => (
-                        <option key={provider.id} value={provider.id}>
-                            {provider.name}
-                        </option>
+                    <input
+                        type="number"
+                        min="1"
+                        placeholder="Enter estimated time"
+                        value={estimatedMinutes}
+                        onChange={(event) =>
+                            setEstimatedMinutes(event.target.value)
+                        }
+                    />
+                </div>
+
+                <br />
+
+                <button type="submit">
+                    Create Service
+                </button>
+            </form>
+
+            <br />
+
+            {error && <p>{error}</p>}
+
+            <h3>Existing Services</h3>
+
+            {services.length === 0 ? (
+                <p>No services found.</p>
+            ) : (
+                <ul>
+                    {services.map((service) => (
+                        <li key={service.id}>
+                            <strong>{service.name}</strong>
+                            {" - "}
+                            {service.estimatedMinutes} minutes
+                        </li>
                     ))}
-                </select>
-            </div>
-
-            {selectedProviderId && (
-                <>
-                    <br />
-
-                    <form onSubmit={handleSubmit}>
-                        <div>
-                            <label>Service Name</label>
-                            <br />
-
-                            <input
-                                type="text"
-                                placeholder="Enter service name"
-                                value={serviceName}
-                                onChange={(event) =>
-                                    setServiceName(event.target.value)
-                                }
-                            />
-                        </div>
-
-                        <br />
-
-                        <div>
-                            <label>Estimated Minutes</label>
-                            <br />
-
-                            <input
-                                type="number"
-                                min="1"
-                                placeholder="Enter estimated time"
-                                value={estimatedMinutes}
-                                onChange={(event) =>
-                                    setEstimatedMinutes(
-                                        event.target.value
-                                    )
-                                }
-                            />
-                        </div>
-
-                        <br />
-
-                        <button type="submit">
-                            Add Service
-                        </button>
-                    </form>
-
-                    <br />
-
-                    {message && <p>{message}</p>}
-                    {error && <p>{error}</p>}
-
-                    <h3>Services</h3>
-
-                    {services.length === 0 ? (
-                        <p>No services found.</p>
-                    ) : (
-                        <ul>
-                            {services.map((service) => (
-                                <li key={service.id}>
-                                    <strong>{service.name}</strong>
-                                    {" - "}
-                                    {service.estimatedMinutes} minutes
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </>
+                </ul>
             )}
-
-            {!selectedProviderId && <p>Please select a provider.</p>}
         </section>
     );
 }

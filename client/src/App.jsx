@@ -9,18 +9,23 @@ function App() {
 
     const [provider, setProvider] = useState(null);
     const [service, setService] = useState(null);
+    const [staff, setStaff] = useState(null);
 
-    function handleProviderCreated(newProvider) {
-        setProvider(newProvider);
+    // Step 1 completed
+    function handleProviderCreated(createdProvider) {
+        setProvider(createdProvider);
         setCurrentStep(2);
     }
 
-    function handleServiceCreated(newService) {
-        setService(newService);
+    // Step 2 completed
+    function handleServiceCreated(createdService) {
+        setService(createdService);
         setCurrentStep(3);
     }
 
-    function handleStaffCreated() {
+    // Step 3 completed
+    function handleStaffCreated(createdStaff) {
+        setStaff(createdStaff);
         setCurrentStep(4);
     }
 
@@ -30,38 +35,64 @@ function App() {
 
             <hr />
 
+            {/* STEP 1 */}
             {currentStep === 1 && (
                 <ProviderRegistration
                     onProviderCreated={handleProviderCreated}
                 />
             )}
 
-            {currentStep === 2 && (
+            {/* STEP 2 */}
+            {currentStep === 2 && provider && (
                 <ServiceManagement
-                    initialProviderId={provider?.id}
+                    provider={provider}
                     onServiceCreated={handleServiceCreated}
                 />
             )}
 
-            {currentStep === 3 && (
+            {/* STEP 3 */}
+            {currentStep === 3 && provider && service && (
                 <StaffManagement
-                    initialProviderId={provider?.id}
-                    initialServiceId={service?.id}
+                    provider={provider}
+                    service={service}
                     onStaffCreated={handleStaffCreated}
                 />
             )}
 
+            {/* STEP 4 */}
             {currentStep === 4 && (
                 <section>
-                    <h2>Setup Completed</h2>
+                    <h2>Setup Completed ✅</h2>
 
                     <p>
-                        Provider, Service and Staff setup completed
-                        successfully.
+                        Business, Service and Staff setup
+                        completed successfully.
                     </p>
 
-                    <h3>Next Module</h3>
+                    {provider && (
+                        <p>
+                            <strong>Business:</strong>{" "}
+                            {provider.name}
+                        </p>
+                    )}
 
+                    {service && (
+                        <p>
+                            <strong>Service:</strong>{" "}
+                            {service.name}
+                        </p>
+                    )}
+
+                    {staff && (
+                        <p>
+                            <strong>Staff:</strong>{" "}
+                            {staff.name}
+                        </p>
+                    )}
+
+                    <hr />
+
+                    <h3>Next Module</h3>
                     <p>Queue Management</p>
                 </section>
             )}

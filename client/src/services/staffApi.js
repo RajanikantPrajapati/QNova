@@ -24,6 +24,19 @@ export async function getStaffByProvider(providerId) {
     return response.json();
 }
 
+// Get staff by service
+export async function getStaffByService(serviceId) {
+    const response = await fetch(
+        `${API_URL}/api/staff/service/${serviceId}`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch service staff");
+    }
+
+    return response.json();
+}
+
 // Create staff
 export async function createStaff(staffData) {
     const response = await fetch(`${API_URL}/api/staff`, {

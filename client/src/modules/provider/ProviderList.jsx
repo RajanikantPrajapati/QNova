@@ -1,28 +1,26 @@
 import { useEffect, useState } from "react";
 import { getProviders } from "../../services/providerApi";
 
-function ProviderList({ refresh }) {
+function ProviderList() {
     const [providers, setProviders] = useState([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const loadProviders = async () => {
+        async function loadProviders() {
             try {
                 const data = await getProviders();
                 setProviders(data);
             } catch (error) {
                 setError(error.message);
             }
-        };
+        }
 
         loadProviders();
-    }, [refresh]);
+    }, []);
 
     return (
         <section>
-            <hr />
-
-            <h2>Providers</h2>
+            <h2>Businesses</h2>
 
             {error && <p>{error}</p>}
 
