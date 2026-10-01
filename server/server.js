@@ -169,15 +169,18 @@ app.get("/api/services/provider/:providerId", (req, res) => {
     res.json(filteredServices);
 });
 
+// Create a new service
 app.post("/api/services", (req, res) => {
     const { providerId, name, estimatedMinutes } = req.body;
 
+    // Basic validation
     if (!providerId || !name || !estimatedMinutes) {
         return res.status(400).json({
             message: "providerId, name and estimatedMinutes are required"
         });
     }
 
+    // Check provider
     const provider = providers.find(
         provider => provider.id === Number(providerId)
     );
@@ -188,6 +191,7 @@ app.post("/api/services", (req, res) => {
         });
     }
 
+    // Validate estimated time
     const minutes = Number(estimatedMinutes);
 
     if (minutes <= 0) {
@@ -196,23 +200,43 @@ app.post("/api/services", (req, res) => {
         });
     }
 
-    const newId =
+    // Generate service ID
+    const newServiceId =
         services.length > 0
             ? Math.max(...services.map(service => service.id)) + 1
             : 1;
 
+    // Create service
     const newService = {
-        id: newId,
+        id: newServiceId,
         providerId: Number(providerId),
         name: name.trim(),
         estimatedMinutes: minutes
     };
 
+    // Save service
     services.push(newService);
 
+    // Automatically create queue for this service
+    const newQueueId =
+        queues.length > 0
+            ? Math.max(...queues.map(queue => queue.id)) + 1
+            : 1;
+
+    const newQueue = {
+        id: newQueueId,
+        serviceId: newService.id,
+        status: "Open"
+    };
+
+    // Save queue
+    queues.push(newQueue);
+
+    // Response
     res.status(201).json({
-        message: "Service created successfully",
-        service: newService
+        message: "Service and queue created successfully",
+        service: newService,
+        queue: newQueue
     });
 });
 
@@ -300,6 +324,99 @@ app.post("/api/staff", (req, res) => {
     res.status(201).json({
         message: "Staff created successfully",
         staff: newStaff
+    });
+});
+
+// =========================
+// QUEUES
+// =========================
+
+const queues = [];
+
+app.get("/api/queues", (req, res) => {
+    res.json(queues);
+});
+
+app.get("/api/queues/service/:serviceId", (req, res) => {
+    const serviceId = Number(req.params.serviceId);
+
+    const serviceQueue = queues.find(
+        queue => queue.serviceId === serviceId
+    );
+
+    if (!serviceQueue) {
+        return res.status(404).json({
+            message: "Queue not found for this service"
+        });
+    }
+
+    res.json(serviceQueue);
+});
+
+app.post("/api/queues", (req, res) => {
+    const { providerId, serviceId } = req.body;
+
+    if (!providerId || !serviceId) {
+        return res.status(400).json({
+            message: "providerId and serviceId are required"
+        });
+    }
+
+    const provider = providers.find(
+        provider => provider.id === Number(providerId)
+    );
+
+    if (!provider) {
+        return res.status(400).json({
+            message: "Invalid provider"
+        });
+    }
+
+    const service = services.find(
+        service => service.id === Number(serviceId)
+    );
+
+    if (!service) {
+        return res.status(400).json({
+            message: "Invalid service"
+        });
+    }
+
+    if (service.providerId !== Number(providerId)) {
+        return res.status(400).json({
+            message: "Service does not belong to this provider"
+        });
+    }
+
+    // Prevent duplicate queue
+    const existingQueue = queues.find(
+        queue => queue.serviceId === Number(serviceId)
+    );
+
+    if (existingQueue) {
+        return res.status(409).json({
+            message: "Queue already exists for this service",
+            queue: existingQueue
+        });
+    }
+
+    const newId =
+        queues.length > 0
+            ? Math.max(...queues.map(queue => queue.id)) + 1
+            : 1;
+
+    const newQueue = {
+        id: newId,
+        providerId: Number(providerId),
+        serviceId: Number(serviceId),
+        status: "Open"
+    };
+
+    queues.push(newQueue);
+
+    res.status(201).json({
+        message: "Queue created successfully",
+        queue: newQueue
     });
 });
 
