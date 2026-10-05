@@ -17,9 +17,11 @@ export async function getQueueByService(serviceId) {
         `${API_URL}/api/queues/service/${serviceId}`
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-        throw new Error("Failed to fetch queue");
+        throw new Error(data.message || "Failed to fetch queue");
     }
 
-    return response.json();
+    return data;
 }

@@ -3,6 +3,7 @@ import { useState } from "react";
 import ProviderRegistration from "./modules/provider/ProviderRegistration";
 import ServiceManagement from "./modules/service/ServiceManagement";
 import StaffManagement from "./modules/staff/StaffManagement";
+import QueueManagement from "./modules/queue/QueueManagement";
 
 function App() {
     const [currentStep, setCurrentStep] = useState(1);
@@ -11,19 +12,19 @@ function App() {
     const [service, setService] = useState(null);
     const [staff, setStaff] = useState(null);
 
-    // Step 1 completed
+    // Step 1
     function handleProviderCreated(createdProvider) {
         setProvider(createdProvider);
         setCurrentStep(2);
     }
 
-    // Step 2 completed
+    // Step 2
     function handleServiceCreated(createdService) {
         setService(createdService);
         setCurrentStep(3);
     }
 
-    // Step 3 completed
+    // Step 3
     function handleStaffCreated(createdStaff) {
         setStaff(createdStaff);
         setCurrentStep(4);
@@ -60,42 +61,14 @@ function App() {
             )}
 
             {/* STEP 4 */}
-            {currentStep === 4 && (
-                <section>
-                    <h2>Setup Completed ✅</h2>
-
-                    <p>
-                        Business, Service and Staff setup
-                        completed successfully.
-                    </p>
-
-                    {provider && (
-                        <p>
-                            <strong>Business:</strong>{" "}
-                            {provider.name}
-                        </p>
-                    )}
-
-                    {service && (
-                        <p>
-                            <strong>Service:</strong>{" "}
-                            {service.name}
-                        </p>
-                    )}
-
-                    {staff && (
-                        <p>
-                            <strong>Staff:</strong>{" "}
-                            {staff.name}
-                        </p>
-                    )}
-
-                    <hr />
-
-                    <h3>Next Module</h3>
-                    <p>Queue Management</p>
-                </section>
-            )}
+            {currentStep === 4 &&
+                provider &&
+                service && (
+                    <QueueManagement
+                        provider={provider}
+                        service={service}
+                    />
+                )}
         </div>
     );
 }
