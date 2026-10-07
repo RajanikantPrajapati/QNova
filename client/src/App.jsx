@@ -4,6 +4,7 @@ import ProviderRegistration from "./modules/provider/ProviderRegistration";
 import ServiceManagement from "./modules/service/ServiceManagement";
 import StaffManagement from "./modules/staff/StaffManagement";
 import QueueManagement from "./modules/queue/QueueManagement";
+import TokenManagement from "./modules/token/TokenManagement";
 
 function App() {
     const [currentStep, setCurrentStep] = useState(1);
@@ -12,22 +13,23 @@ function App() {
     const [service, setService] = useState(null);
     const [staff, setStaff] = useState(null);
 
-    // Step 1
     function handleProviderCreated(createdProvider) {
         setProvider(createdProvider);
         setCurrentStep(2);
     }
 
-    // Step 2
     function handleServiceCreated(createdService) {
         setService(createdService);
         setCurrentStep(3);
     }
 
-    // Step 3
     function handleStaffCreated(createdStaff) {
         setStaff(createdStaff);
         setCurrentStep(4);
+    }
+
+    function handleQueueComplete() {
+        setCurrentStep(5);
     }
 
     return (
@@ -64,7 +66,25 @@ function App() {
             {currentStep === 4 &&
                 provider &&
                 service && (
-                    <QueueManagement
+                    <div>
+                        <QueueManagement
+                            provider={provider}
+                            service={service}
+                        />
+
+                        <hr />
+
+                        <button onClick={handleQueueComplete}>
+                            Continue to Token Management
+                        </button>
+                    </div>
+                )}
+
+            {/* STEP 5 */}
+            {currentStep === 5 &&
+                provider &&
+                service && (
+                    <TokenManagement
                         provider={provider}
                         service={service}
                     />

@@ -92,7 +92,6 @@ app.get("/api/providers", (req, res) => {
 
 // Get providers by business type
 app.get("/api/providers/type/:businessTypeId", (req, res) => {
-
     const businessTypeId = Number(req.params.businessTypeId);
 
     if (
@@ -114,17 +113,15 @@ app.get("/api/providers/type/:businessTypeId", (req, res) => {
 
 // Create a new provider
 app.post("/api/providers", (req, res) => {
-
     const {
         businessTypeId,
         name,
         location
     } = req.body;
 
-
-    // Validate business type ID
     const parsedBusinessTypeId = Number(businessTypeId);
 
+    // Validate business type ID
     if (
         !Number.isInteger(parsedBusinessTypeId) ||
         parsedBusinessTypeId <= 0
@@ -133,7 +130,6 @@ app.post("/api/providers", (req, res) => {
             message: "businessTypeId must be a valid positive integer"
         });
     }
-
 
     // Validate provider name
     if (
@@ -145,7 +141,6 @@ app.post("/api/providers", (req, res) => {
         });
     }
 
-
     // Validate location
     if (
         typeof location !== "string" ||
@@ -155,7 +150,6 @@ app.post("/api/providers", (req, res) => {
             message: "Location is required"
         });
     }
-
 
     // Check business type
     const businessType = businessTypes.find(
@@ -168,7 +162,6 @@ app.post("/api/providers", (req, res) => {
         });
     }
 
-
     // Generate provider ID
     const newId =
         providers.length > 0
@@ -176,7 +169,6 @@ app.post("/api/providers", (req, res) => {
                 ...providers.map(provider => provider.id)
             ) + 1
             : 1;
-
 
     // Create provider
     const newProvider = {
@@ -186,10 +178,8 @@ app.post("/api/providers", (req, res) => {
         location: location.trim()
     };
 
-
     // Save provider
     providers.push(newProvider);
-
 
     // Response
     res.status(201).json({
@@ -229,24 +219,27 @@ const services = [
 // QUEUES
 // ==================================================
 
-// Every service has its own queue.
+// Each service has its own queue.
 // Existing demo services already have queues.
 
 const queues = [
     {
         id: 1,
         serviceId: 1,
-        status: "Open"
+        status: "Open",
+        nextTokenNumber: 1
     },
     {
         id: 2,
         serviceId: 2,
-        status: "Open"
+        status: "Open",
+        nextTokenNumber: 1
     },
     {
         id: 3,
         serviceId: 3,
-        status: "Open"
+        status: "Open",
+        nextTokenNumber: 1
     }
 ];
 
@@ -254,7 +247,6 @@ const queues = [
 // ==================================================
 // SERVICE APIs
 // ==================================================
-
 
 // Get all services
 app.get("/api/services", (req, res) => {
@@ -264,7 +256,6 @@ app.get("/api/services", (req, res) => {
 
 // Get services by provider
 app.get("/api/services/provider/:providerId", (req, res) => {
-
     const providerId = Number(req.params.providerId);
 
     if (
@@ -275,7 +266,6 @@ app.get("/api/services/provider/:providerId", (req, res) => {
             message: "Invalid provider ID"
         });
     }
-
 
     const filteredServices = services.filter(
         service => service.providerId === providerId
@@ -288,17 +278,16 @@ app.get("/api/services/provider/:providerId", (req, res) => {
 // Create a new service
 // A queue is automatically created with the service.
 app.post("/api/services", (req, res) => {
-
     const {
         providerId,
         name,
         estimatedMinutes
     } = req.body;
 
+    const parsedProviderId = Number(providerId);
+    const parsedMinutes = Number(estimatedMinutes);
 
     // Validate provider ID
-    const parsedProviderId = Number(providerId);
-
     if (
         !Number.isInteger(parsedProviderId) ||
         parsedProviderId <= 0
@@ -307,7 +296,6 @@ app.post("/api/services", (req, res) => {
             message: "providerId must be a valid positive integer"
         });
     }
-
 
     // Validate service name
     if (
@@ -319,10 +307,7 @@ app.post("/api/services", (req, res) => {
         });
     }
 
-
     // Validate estimated minutes
-    const parsedMinutes = Number(estimatedMinutes);
-
     if (
         !Number.isFinite(parsedMinutes) ||
         parsedMinutes <= 0
@@ -331,7 +316,6 @@ app.post("/api/services", (req, res) => {
             message: "estimatedMinutes must be a valid number greater than 0"
         });
     }
-
 
     // Check provider
     const provider = providers.find(
@@ -344,7 +328,6 @@ app.post("/api/services", (req, res) => {
         });
     }
 
-
     // Generate service ID
     const newServiceId =
         services.length > 0
@@ -352,7 +335,6 @@ app.post("/api/services", (req, res) => {
                 ...services.map(service => service.id)
             ) + 1
             : 1;
-
 
     // Create service
     const newService = {
@@ -362,14 +344,13 @@ app.post("/api/services", (req, res) => {
         estimatedMinutes: parsedMinutes
     };
 
-
     // Save service
     services.push(newService);
 
 
-    // ==============================================
+    // ==================================================
     // AUTOMATIC QUEUE CREATION
-    // ==============================================
+    // ==================================================
 
     const newQueueId =
         queues.length > 0
@@ -378,13 +359,12 @@ app.post("/api/services", (req, res) => {
             ) + 1
             : 1;
 
-
     const newQueue = {
         id: newQueueId,
         serviceId: newService.id,
-        status: "Open"
+        status: "Open",
+        nextTokenNumber: 1
     };
-
 
     // Save queue
     queues.push(newQueue);
@@ -414,7 +394,6 @@ app.get("/api/staff", (req, res) => {
 
 // Get staff by provider
 app.get("/api/staff/provider/:providerId", (req, res) => {
-
     const providerId = Number(req.params.providerId);
 
     if (
@@ -426,7 +405,6 @@ app.get("/api/staff/provider/:providerId", (req, res) => {
         });
     }
 
-
     const filteredStaff = staff.filter(
         member => member.providerId === providerId
     );
@@ -437,7 +415,6 @@ app.get("/api/staff/provider/:providerId", (req, res) => {
 
 // Get staff by service
 app.get("/api/staff/service/:serviceId", (req, res) => {
-
     const serviceId = Number(req.params.serviceId);
 
     if (
@@ -449,7 +426,6 @@ app.get("/api/staff/service/:serviceId", (req, res) => {
         });
     }
 
-
     const filteredStaff = staff.filter(
         member => member.serviceId === serviceId
     );
@@ -460,7 +436,6 @@ app.get("/api/staff/service/:serviceId", (req, res) => {
 
 // Create a new staff member
 app.post("/api/staff", (req, res) => {
-
     const {
         providerId,
         serviceId,
@@ -468,10 +443,10 @@ app.post("/api/staff", (req, res) => {
         role
     } = req.body;
 
+    const parsedProviderId = Number(providerId);
+    const parsedServiceId = Number(serviceId);
 
     // Validate provider ID
-    const parsedProviderId = Number(providerId);
-
     if (
         !Number.isInteger(parsedProviderId) ||
         parsedProviderId <= 0
@@ -481,10 +456,7 @@ app.post("/api/staff", (req, res) => {
         });
     }
 
-
     // Validate service ID
-    const parsedServiceId = Number(serviceId);
-
     if (
         !Number.isInteger(parsedServiceId) ||
         parsedServiceId <= 0
@@ -493,7 +465,6 @@ app.post("/api/staff", (req, res) => {
             message: "serviceId must be a valid positive integer"
         });
     }
-
 
     // Validate staff name
     if (
@@ -504,7 +475,6 @@ app.post("/api/staff", (req, res) => {
             message: "Staff name is required"
         });
     }
-
 
     // Check provider
     const provider = providers.find(
@@ -517,7 +487,6 @@ app.post("/api/staff", (req, res) => {
         });
     }
 
-
     // Check service
     const service = services.find(
         service => service.id === parsedServiceId
@@ -529,7 +498,6 @@ app.post("/api/staff", (req, res) => {
         });
     }
 
-
     // Make sure service belongs to provider
     if (
         service.providerId !== parsedProviderId
@@ -539,7 +507,6 @@ app.post("/api/staff", (req, res) => {
         });
     }
 
-
     // Generate staff ID
     const newId =
         staff.length > 0
@@ -547,7 +514,6 @@ app.post("/api/staff", (req, res) => {
                 ...staff.map(member => member.id)
             ) + 1
             : 1;
-
 
     // Create staff
     const newStaff = {
@@ -561,10 +527,8 @@ app.post("/api/staff", (req, res) => {
                 : "Staff"
     };
 
-
     // Save staff
     staff.push(newStaff);
-
 
     // Response
     res.status(201).json({
@@ -587,9 +551,9 @@ app.get("/api/queues", (req, res) => {
 
 // Get queue by service
 app.get("/api/queues/service/:serviceId", (req, res) => {
-
     const serviceId = Number(req.params.serviceId);
 
+    // Validate service ID
     if (
         !Number.isInteger(serviceId) ||
         serviceId <= 0
@@ -598,7 +562,6 @@ app.get("/api/queues/service/:serviceId", (req, res) => {
             message: "Invalid service ID"
         });
     }
-
 
     // Check service exists
     const service = services.find(
@@ -611,7 +574,6 @@ app.get("/api/queues/service/:serviceId", (req, res) => {
         });
     }
 
-
     // Find queue
     const serviceQueue = queues.find(
         queue => queue.serviceId === serviceId
@@ -623,8 +585,175 @@ app.get("/api/queues/service/:serviceId", (req, res) => {
         });
     }
 
-
     res.json(serviceQueue);
+});
+
+
+// ==================================================
+// TOKENS
+// ==================================================
+
+const tokens = [];
+
+
+// Create a new token
+app.post("/api/tokens", (req, res) => {
+    const {
+        customerId,
+        serviceId
+    } = req.body;
+
+    const parsedCustomerId = Number(customerId);
+    const parsedServiceId = Number(serviceId);
+
+    // Validate customer ID
+    if (
+        !Number.isInteger(parsedCustomerId) ||
+        parsedCustomerId <= 0
+    ) {
+        return res.status(400).json({
+            message: "customerId must be a valid positive integer"
+        });
+    }
+
+    // Validate service ID
+    if (
+        !Number.isInteger(parsedServiceId) ||
+        parsedServiceId <= 0
+    ) {
+        return res.status(400).json({
+            message: "serviceId must be a valid positive integer"
+        });
+    }
+
+    // Check service
+    const service = services.find(
+        service => service.id === parsedServiceId
+    );
+
+    if (!service) {
+        return res.status(404).json({
+            message: "Service not found"
+        });
+    }
+
+    // Find queue for service
+    const queue = queues.find(
+        queue => queue.serviceId === parsedServiceId
+    );
+
+    if (!queue) {
+        return res.status(404).json({
+            message: "Queue not found for this service"
+        });
+    }
+
+    // Check queue status
+    if (queue.status !== "Open") {
+        return res.status(400).json({
+            message: "Queue is currently closed"
+        });
+    }
+
+    // Find current waiting tokens
+    const waitingTokens = tokens.filter(
+        token =>
+            token.queueId === queue.id &&
+            token.status === "Waiting"
+    );
+
+    // Calculate position
+    const position = waitingTokens.length + 1;
+
+    // Calculate estimated wait
+    const estimatedWait =
+        (position - 1) * service.estimatedMinutes;
+
+    // Generate token ID
+    const newTokenId =
+        tokens.length > 0
+            ? Math.max(
+                ...tokens.map(token => token.id)
+            ) + 1
+            : 1;
+
+    // Generate token number
+    const tokenNumber = `T-${String(
+        queue.nextTokenNumber
+    ).padStart(3, "0")}`;
+
+    // Create token
+    const newToken = {
+        id: newTokenId,
+        tokenNumber: tokenNumber,
+        customerId: parsedCustomerId,
+        serviceId: parsedServiceId,
+        queueId: queue.id,
+        position: position,
+        status: "Waiting",
+        estimatedWait: estimatedWait,
+        createdAt: new Date().toISOString()
+    };
+
+    // Save token
+    tokens.push(newToken);
+
+    // Increase token counter
+    queue.nextTokenNumber += 1;
+
+    // Response
+    res.status(201).json({
+        message: "Token generated successfully",
+        token: newToken
+    });
+});
+
+
+// Get all tokens
+app.get("/api/tokens", (req, res) => {
+    res.json(tokens);
+});
+
+
+// Get tokens by service
+app.get("/api/tokens/service/:serviceId", (req, res) => {
+    const serviceId = Number(req.params.serviceId);
+
+    if (
+        !Number.isInteger(serviceId) ||
+        serviceId <= 0
+    ) {
+        return res.status(400).json({
+            message: "Invalid service ID"
+        });
+    }
+
+    const serviceTokens = tokens.filter(
+        token => token.serviceId === serviceId
+    );
+
+    res.json(serviceTokens);
+});
+
+
+// Get tokens by customer
+app.get("/api/tokens/customer/:customerId", (req, res) => {
+    const customerId = Number(req.params.customerId);
+
+    if (
+        !Number.isInteger(customerId) ||
+        customerId <= 0
+    ) {
+        return res.status(400).json({
+            message: "Invalid customer ID"
+        });
+    }
+
+    const customerTokens = tokens.filter(
+        token => token.customerId === customerId
+    );
+
+    res.json(customerTokens);
 });
 
 
